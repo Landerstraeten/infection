@@ -1,34 +1,22 @@
 #!/usr/bin/env php
 <?php
 
-if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'phpdbg') {
-    echo 'Warning: Infection may only be invoked from a command line', PHP_EOL;
+define('INFECTION_PATH', dirname(__DIR__).'');
+
+$autoloadLocations = [
+    getcwd() . '/vendor/autoload.php',
+    getcwd() . '/../../autoload.php',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$loaded = false;
+foreach ($autoloadLocations as $autoload) {
+    if (is_file($autoload)) {
+        require_once($autoload);
+        $loaded = true;
+    }
 }
 
-require __DIR__ . '/../app/bootstrap.php';
-
-function prepareArgv()
-{
-    $argv = $_SERVER['argv'];
-
-    $found = false;
-
-    while (next($argv)) {
-        $value = current($argv);
-        if (!$value || '-' !== $value[0]) {
-            $found = true;
-        }
-    }
-
-    if (!$found) {
-        array_splice($argv, 1, 0,'run');
-    }
-
-    return $argv;
-}
-
-
-$input = new \Symfony\Component\Console\Input\ArgvInput(prepareArgv());
-$application = $container['application'];
-
-$application->run($input);
+$app = new Infection\Console\Application();
+$app->run();
